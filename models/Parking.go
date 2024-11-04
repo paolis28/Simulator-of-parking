@@ -39,3 +39,15 @@ func (p *Parking) GetParkingSpotAvailable() *ParkingSpot {
 		p.availableCond.Wait()
 	}
 }
+
+func (p *Parking) ReleaseParkingSpot(spot *ParkingSpot) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	spot.SetIsAvailable(true)
+	p.availableCond.Signal()
+}
+
+func (p *Parking) GetQueueCars() *CarQueue {
+	return p.queueCars
+}
