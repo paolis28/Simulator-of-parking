@@ -3,8 +3,8 @@ package models
 import "sync"
 
 type CarManager struct {
-	Cars  []*Car
 	Mutex sync.Mutex
+	Cars  []*Car
 }
 
 func NewCarManager() *CarManager {

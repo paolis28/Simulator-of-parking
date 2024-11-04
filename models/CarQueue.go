@@ -6,8 +6,8 @@ import (
 )
 
 type CarQueue struct {
-	queue *list.List
 	mutex sync.Mutex
+	queue *list.List
 }
 
 func NewCarQueue() *CarQueue {

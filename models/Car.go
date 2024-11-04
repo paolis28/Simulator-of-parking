@@ -19,9 +19,9 @@ const (
 )
 
 type Car struct {
+	mu     sync.Mutex
 	area   floatgeom.Rect2
 	entity *entities.Entity
-	mu     sync.Mutex
 }
 
 func NewCar(ctx *scene.Context) *Car {
