@@ -20,3 +20,7 @@ func NewParking(spots []*ParkingSpot) *Parking {
 
 	return p
 }
+
+func (p *Parking) GetSpots() []*ParkingSpot {
+	return p.spots
+}
