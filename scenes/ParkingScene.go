@@ -78,18 +78,48 @@ func (ps *ParkingScene) Start() {
 }
 
 func setUpScene(ctx *scene.Context) {
-
 	parkingArea := floatgeom.NewRect2(0, 0, 1000, 1000)
-	entities.New(ctx, entities.WithRect(parkingArea), entities.WithColor(color.RGBA{86, 101, 115, 255}), entities.WithDrawLayers([]int{0}))
+	entities.New(ctx, entities.WithRect(parkingArea), entities.WithColor(color.RGBA{50, 50, 50, 255}), entities.WithDrawLayers([]int{0}))
+
+	entities.New(ctx, entities.WithRect(floatgeom.NewRect2(0, 0, 340, 50)), entities.WithColor(color.RGBA{50, 50, 50, 255}), entities.WithDrawLayers([]int{0}))
+
+	entities.New(ctx, entities.WithRect(floatgeom.NewRect2(0, 950, 1000, 1000)), entities.WithColor(color.RGBA{50, 50, 50, 255}), entities.WithDrawLayers([]int{0}))
+
+	entities.New(ctx, entities.WithRect(floatgeom.NewRect2(0, 0, 100, 1000)), entities.WithColor(color.RGBA{50, 50, 50, 255}), entities.WithDrawLayers([]int{0}))
+
+	entities.New(ctx, entities.WithRect(floatgeom.NewRect2(950, 0, 1000, 1000)), entities.WithColor(color.RGBA{50, 50, 50, 255}), entities.WithDrawLayers([]int{0}))
+
+	for x := 60; x < 320; x += 40 {
+		entities.New(ctx, entities.WithRect(floatgeom.NewRect2(float64(x), 24, float64(x+20), 29)), entities.WithColor(color.RGBA{255, 255, 0, 255}), entities.WithDrawLayers([]int{1}))
+
+		entities.New(ctx, entities.WithRect(floatgeom.NewRect2(float64(x), 975, float64(x+20), 980)), entities.WithColor(color.RGBA{255, 255, 255, 255}), entities.WithDrawLayers([]int{1}))
+	}
+
+	for y := 60; y < 940; y += 40 {
+		entities.New(ctx, entities.WithRect(floatgeom.NewRect2(45, float64(y), 50, float64(y+20))), entities.WithColor(color.RGBA{255, 255, 0, 255}), entities.WithDrawLayers([]int{1}))
+
+		entities.New(ctx, entities.WithRect(floatgeom.NewRect2(775, float64(y), 980, float64(y+20))), entities.WithColor(color.RGBA{255, 255, 255, 255}), entities.WithDrawLayers([]int{1}))
+	}
 
 	entities.New(ctx, entities.WithRect(floatgeom.NewRect2(340, 5, 630, 10)), entities.WithColor(color.RGBA{255, 0, 0, 255}), entities.WithDrawLayers([]int{0}))
+	for x := 340; x < 610; x += 20 {
+		entities.New(ctx, entities.WithRect(floatgeom.NewRect2(float64(x), 24, float64(x+15), 29)), entities.WithColor(color.RGBA{255, 255, 0, 255}), entities.WithDrawLayers([]int{0}))
+	}
+
 	entities.New(ctx, entities.WithRect(floatgeom.NewRect2(340, 400, 630, 405)), entities.WithColor(color.RGBA{255, 0, 0, 255}), entities.WithDrawLayers([]int{0}))
 	entities.New(ctx, entities.WithRect(floatgeom.NewRect2(340, 70, 345, 400)), entities.WithColor(color.RGBA{255, 0, 0, 255}), entities.WithDrawLayers([]int{0}))
 	entities.New(ctx, entities.WithRect(floatgeom.NewRect2(625, 10, 630, 400)), entities.WithColor(color.RGBA{255, 0, 0, 255}), entities.WithDrawLayers([]int{0}))
 
 	for _, spot := range spots {
-		entities.New(ctx, entities.WithRect(floatgeom.NewRect2(spot.GetArea().Min.X(), spot.GetArea().Min.Y(), spot.GetArea().Min.X()+1, spot.GetArea().Max.Y())), entities.WithColor(color.RGBA{124, 252, 0, 255}))
-		entities.New(ctx, entities.WithRect(floatgeom.NewRect2(spot.GetArea().Max.X(), spot.GetArea().Min.Y(), spot.GetArea().Max.X()-1, spot.GetArea().Max.Y())), entities.WithColor(color.RGBA{124, 252, 0, 255}))
+		for y := int(spot.GetArea().Min.Y()) + 2; y < int(spot.GetArea().Max.Y())-2; y += 10 {
+			entities.New(ctx, entities.WithRect(floatgeom.NewRect2(spot.GetArea().Min.X(), float64(y), spot.GetArea().Min.X()+2, float64(y+5))), entities.WithColor(color.RGBA{255, 255, 255, 255}))
+			entities.New(ctx, entities.WithRect(floatgeom.NewRect2(spot.GetArea().Max.X()-2, float64(y), spot.GetArea().Max.X(), float64(y+5))), entities.WithColor(color.RGBA{255, 255, 255, 255}))
+		}
+
+		for x := int(spot.GetArea().Min.X()); x < int(spot.GetArea().Max.X()); x += 20 {
+			entities.New(ctx, entities.WithRect(floatgeom.NewRect2(float64(x), spot.GetArea().Min.Y(), float64(x+15), spot.GetArea().Min.Y()+2)), entities.WithColor(color.RGBA{255, 255, 255, 255}))
+			entities.New(ctx, entities.WithRect(floatgeom.NewRect2(float64(x), spot.GetArea().Max.Y()-2, float64(x+15), spot.GetArea().Max.Y())), entities.WithColor(color.RGBA{255, 255, 255, 255}))
+		}
 	}
 }
 
@@ -110,7 +140,7 @@ func carCycle(ctx *scene.Context) {
 
 	car.Park(spotAvailable, carManager)
 
-	time.Sleep(time.Millisecond * time.Duration(getRandomNumber(40000, 50000)))
+	time.Sleep(time.Millisecond * time.Duration(getRandomNumber(30000, 50000)))
 
 	car.LeaveSpot(carManager)
 
