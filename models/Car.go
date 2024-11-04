@@ -15,7 +15,7 @@ import (
 
 const (
 	entranceSpotX = 355.00 // punto de entrada al estacionamiento
-	speed         = 10     // velocidad del auto
+	speed         = 5      // velocidad del auto
 )
 
 type Car struct {
