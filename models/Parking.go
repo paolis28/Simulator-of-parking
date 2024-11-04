@@ -24,3 +24,18 @@ func NewParking(spots []*ParkingSpot) *Parking {
 func (p *Parking) GetSpots() []*ParkingSpot {
 	return p.spots
 }
+
+func (p *Parking) GetParkingSpotAvailable() *ParkingSpot {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	for {
+		for _, spot := range p.spots {
+			if spot.GetIsAvailable() {
+				spot.SetIsAvailable(false)
+				return spot
+			}
+		}
+		p.availableCond.Wait()
+	}
+}
