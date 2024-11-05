@@ -41,7 +41,7 @@ func (cc *CarController) Start() {
 
 	cc.Park(spot)
 
-	time.Sleep(time.Second * time.Duration(rand.Intn(20)+30))
+	time.Sleep(time.Second * time.Duration(rand.Intn(10)+15))
 
 	cc.LeaveSpot()
 	cc.Parking.ReleaseSpot(spot)
@@ -64,7 +64,7 @@ func (cc *CarController) Enqueue() {
 	// No removemos el auto de la cola aquí
 
 	minY := 45.0    // Posición Y objetivo al frente de la cola
-	spacing := 50.0 // Distancia mínima entre autos
+	spacing := 20.0 // Distancia mínima entre autos
 
 	for cc.Car.Y > minY {
 		// Obtener el auto delante en la cola
