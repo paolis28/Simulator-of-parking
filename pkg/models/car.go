@@ -70,11 +70,18 @@ func (c *Car) NotifyObservers() {
 	}
 }
 
-// Move actualiza la posición y dirección del auto y notifica a los observadores.
+// Move actualiza la posición y notifica a los observadores.
 func (c *Car) Move(dx, dy float64) {
 	c.mu.Lock()
 	c.X += dx
 	c.Y += dy
+	c.mu.Unlock()
+	c.NotifyObservers()
+}
+
+// SetDirection establece la dirección del auto.
+func (c *Car) SetDirection(dx, dy float64) {
+	c.mu.Lock()
 	c.DX = dx
 	c.DY = dy
 	c.mu.Unlock()
@@ -111,11 +118,11 @@ func (c *Car) GetDirectionName() string {
 	if angle >= -45 && angle <= 45 {
 		return "right"
 	} else if angle > 45 && angle < 135 {
-		return "down"
+		return "up" // Cambiado de "down" a "up" para corregir orientación
 	} else if angle >= 135 || angle <= -135 {
 		return "left"
 	} else {
-		return "up"
+		return "down" // Cambiado de "up" a "down" para corregir orientación
 	}
 }
 

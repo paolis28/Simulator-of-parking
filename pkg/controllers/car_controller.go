@@ -16,7 +16,7 @@ type CarController struct {
 	CarView    *views.CarView
 	CarManager *models.CarManager
 	DoorMutex  *sync.Mutex
-	PathMutex  *sync.Mutex // Nuevo mutex para el camino compartido
+	PathMutex  *sync.Mutex // Mutex para el camino compartido
 }
 
 // NewCarController crea una nueva instancia de CarController.
@@ -41,6 +41,7 @@ func (cc *CarController) Start() {
 
 	cc.Park(spot)
 
+	// Tiempo que el auto permanece estacionado (3 a 5 segundos)
 	time.Sleep(time.Second * time.Duration(rand.Intn(10)+15))
 
 	cc.LeaveSpot()
@@ -64,7 +65,7 @@ func (cc *CarController) Enqueue() {
 	// No removemos el auto de la cola aquí
 
 	minY := 45.0    // Posición Y objetivo al frente de la cola
-	spacing := 20.0 // Distancia mínima entre autos
+	spacing := 50.0 // Distancia mínima entre autos
 
 	for cc.Car.Y > minY {
 		// Obtener el auto delante en la cola
@@ -82,7 +83,10 @@ func (cc *CarController) Enqueue() {
 		}
 
 		if canMove {
+			cc.Car.SetDirection(0, -1) // Establecer dirección hacia arriba
 			cc.Car.Move(0, -1)
+		} else {
+			cc.Car.SetDirection(0, -1) // Mantener dirección hacia arriba
 		}
 		time.Sleep(10 * time.Millisecond)
 	}
@@ -118,7 +122,10 @@ func (cc *CarController) JoinDoor() {
 			}
 		}
 		if canMove {
+			cc.Car.SetDirection(1, 0) // Establecer dirección hacia la derecha
 			cc.Car.Move(1, 0)
+		} else {
+			cc.Car.SetDirection(1, 0) // Mantener dirección hacia la derecha
 		}
 		time.Sleep(10 * time.Millisecond)
 	}
@@ -133,6 +140,7 @@ func (cc *CarController) Park(spot *models.ParkingSpot) {
 
 func (cc *CarController) LeaveSpot() {
 	fmt.Println("Auto saliendo del lugar de estacionamiento") // Mensaje de depuración
+	cc.Car.SetDirection(0, -1)                                // Establecer dirección hacia arriba
 	cc.Car.Move(0, -30)
 }
 
@@ -159,7 +167,10 @@ func (cc *CarController) ExitDoor() {
 			}
 		}
 		if canMove {
+			cc.Car.SetDirection(-1, 0) // Establecer dirección hacia la izquierda
 			cc.Car.Move(-1, 0)
+		} else {
+			cc.Car.SetDirection(-1, 0) // Mantener dirección hacia la izquierda
 		}
 		time.Sleep(10 * time.Millisecond)
 	}
@@ -167,6 +178,7 @@ func (cc *CarController) ExitDoor() {
 
 func (cc *CarController) GoAway() {
 	fmt.Println("Auto alejándose") // Mensaje de depuración
+	cc.Car.SetDirection(-1, 0)     // Establecer dirección hacia la izquierda
 	for cc.Car.X > -20 {
 		cc.Car.Move(-1, 0)
 		time.Sleep(5 * time.Millisecond)
@@ -246,7 +258,11 @@ func (cc *CarController) move(direction *models.ParkingSpotDirection) {
 		}
 
 		if canMove {
+			cc.Car.SetDirection(dx, dy) // Establecer la dirección actual
 			cc.Car.Move(dx, dy)
+		} else {
+			// Mantener la dirección actual
+			cc.Car.SetDirection(dx, dy)
 		}
 		time.Sleep(10 * time.Millisecond)
 	}

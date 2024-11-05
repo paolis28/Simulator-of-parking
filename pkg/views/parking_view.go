@@ -33,7 +33,7 @@ func (pv *ParkingView) setupScene() {
 	parkingArea := floatgeom.NewRect2(0, 0, 900, 450)
 	entities.New(ctx,
 		entities.WithRect(parkingArea),
-		entities.WithColor(color.RGBA{50, 50, 50, 255}),
+		entities.WithColor(color.RGBA{30, 30, 30, 255}),
 		entities.WithDrawLayers([]int{0}),
 	)
 
