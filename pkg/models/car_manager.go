@@ -38,5 +38,7 @@ func (cm *CarManager) RemoveCar(car *Car) {
 func (cm *CarManager) GetCars() []*Car {
 	cm.mu.Lock()
 	defer cm.mu.Unlock()
-	return cm.Cars
+	carsCopy := make([]*Car, len(cm.Cars))
+	copy(carsCopy, cm.Cars)
+	return carsCopy
 }

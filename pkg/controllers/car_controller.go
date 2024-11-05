@@ -5,7 +5,6 @@ import (
 	"estacionamiento/pkg/views"
 	"fmt"
 	"math/rand"
-	"sync"
 	"time"
 )
 
@@ -15,18 +14,18 @@ type CarController struct {
 	Parking    *models.Parking
 	CarView    *views.CarView
 	CarManager *models.CarManager
-	DoorMutex  *sync.Mutex
-	PathMutex  *sync.Mutex // Mutex para el camino compartido
+	DoorChan   chan struct{}
+	PathChan   chan struct{}
 }
 
 // NewCarController crea una nueva instancia de CarController.
-func NewCarController(car *models.Car, parking *models.Parking, carManager *models.CarManager, doorMutex *sync.Mutex, pathMutex *sync.Mutex) *CarController {
+func NewCarController(car *models.Car, parking *models.Parking, carManager *models.CarManager, doorChan chan struct{}, pathChan chan struct{}) *CarController {
 	return &CarController{
 		Car:        car,
 		Parking:    parking,
 		CarManager: carManager,
-		DoorMutex:  doorMutex,
-		PathMutex:  pathMutex,
+		DoorChan:   doorChan,
+		PathChan:   pathChan,
 	}
 }
 
@@ -41,18 +40,17 @@ func (cc *CarController) Start() {
 
 	cc.Park(spot)
 
-	// Tiempo que el auto permanece estacionado (3 a 5 segundos)
-	time.Sleep(time.Second * time.Duration(rand.Intn(10)+15))
+	time.Sleep(time.Second * time.Duration(rand.Intn(15)+10))
 
 	cc.LeaveSpot()
 	cc.Parking.ReleaseSpot(spot)
 
 	cc.Leave(spot)
 
-	// Los autos que salen adquieren el PathMutex para tener prioridad
-	cc.PathMutex.Lock()
+	// Los autos que salen adquieren el PathChan para tener prioridad
+	<-cc.PathChan
 	cc.ExitDoor()
-	cc.PathMutex.Unlock()
+	cc.PathChan <- struct{}{}
 
 	cc.GoAway()
 	cc.CarManager.RemoveCar(cc.Car)
@@ -62,7 +60,6 @@ func (cc *CarController) Start() {
 func (cc *CarController) Enqueue() {
 	fmt.Println("Auto encolado, iniciando movimiento hacia la cola")
 	cc.Parking.QueueCars.Enqueue(cc.Car)
-	// No removemos el auto de la cola aquí
 
 	minY := 45.0    // Posición Y objetivo al frente de la cola
 	spacing := 50.0 // Distancia mínima entre autos
@@ -73,7 +70,6 @@ func (cc *CarController) Enqueue() {
 		canMove := true
 
 		if carAhead != nil {
-			// Obtener la posición del auto delante
 			_, aheadY := carAhead.GetPosition()
 			ccY := cc.Car.Y
 
@@ -91,13 +87,13 @@ func (cc *CarController) Enqueue() {
 		time.Sleep(10 * time.Millisecond)
 	}
 
-	// Esperar por la puerta
-	cc.DoorMutex.Lock()
-	defer cc.DoorMutex.Unlock()
+	// Adquirir acceso a la puerta
+	<-cc.DoorChan
+	defer func() { cc.DoorChan <- struct{}{} }()
 
-	// Esperar a que el camino compartido esté libre
-	cc.PathMutex.Lock()
-	defer cc.PathMutex.Unlock()
+	// Adquirir acceso al camino compartido
+	<-cc.PathChan
+	defer func() { cc.PathChan <- struct{}{} }()
 
 	// Pasar por la puerta con detección de colisiones
 	cc.JoinDoor()

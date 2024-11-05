@@ -6,7 +6,6 @@ import (
 	"estacionamiento/pkg/views"
 	"fmt"
 	"math/rand"
-	"sync"
 	"time"
 
 	"github.com/oakmound/oak/v4/scene"
@@ -50,15 +49,19 @@ func NewParkingScene() *scene.Scene {
 			parkingView := views.NewParkingView(parking, ctx)
 			parkingController.View = parkingView
 
-			doorMutex := &sync.Mutex{}
-			pathMutex := &sync.Mutex{} // Nuevo mutex para el camino compartido
+			doorChan := make(chan struct{}, 1)
+			doorChan <- struct{}{} // Inicializar el semáforo de la puerta
+
+			pathChan := make(chan struct{}, 1)
+			pathChan <- struct{}{} // Inicializar el semáforo del camino compartido
+
 			carManager := models.NewCarManager()
 
 			go func() {
 				for {
 					fmt.Println("Generando un nuevo auto") // Mensaje de depuración
 					car := models.NewCar()
-					carController := controllers.NewCarController(car, parking, carManager, doorMutex, pathMutex)
+					carController := controllers.NewCarController(car, parking, carManager, doorChan, pathChan)
 					carView := views.NewCarView(car, ctx)
 					carController.CarView = carView
 					go carController.Start()
