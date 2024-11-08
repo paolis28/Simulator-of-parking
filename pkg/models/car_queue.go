@@ -45,7 +45,7 @@ func (cq *CarQueue) GetPositionInQueue(car *Car) int {
 			return i
 		}
 	}
-	return -1 // No encontrado
+	return -1
 }
 
 // GetCarAhead devuelve el auto que está delante en la cola.

@@ -18,7 +18,7 @@ type CarController struct {
 	PathChan   chan struct{}
 }
 
-// NewCarController crea una nueva instancia de CarController.
+// Instancia de CarController.
 func NewCarController(car *models.Car, parking *models.Parking, carManager *models.CarManager, doorChan chan struct{}, pathChan chan struct{}) *CarController {
 	return &CarController{
 		Car:        car,
@@ -40,7 +40,7 @@ func (cc *CarController) Start() {
 
 	cc.Park(spot)
 
-	time.Sleep(time.Second * time.Duration(rand.Intn(15)+10))
+	time.Sleep(time.Second * time.Duration(rand.Intn(15)+20))
 
 	cc.LeaveSpot()
 	cc.Parking.ReleaseSpot(spot)

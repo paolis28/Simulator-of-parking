@@ -6,8 +6,8 @@ import (
 
 // ParkingSpotDirection representa una dirección específica y un punto asociado para maniobrar en un estacionamiento.
 type ParkingSpotDirection struct {
-	Direction string  // Dirección del movimiento: "left", "right", "up", "down".
-	Point     float64 // Punto específico hacia el cual se debe mover.
+	Direction string // Dirección del movimiento: "left", "right", "up", "down".
+	Point     float64
 }
 
 // NewParkingSpotDirection crea y devuelve una nueva instancia de ParkingSpotDirection.
@@ -23,8 +23,8 @@ type ParkingSpot struct {
 	Area                 *floatgeom.Rect2        // Área que delimita el lugar de estacionamiento.
 	DirectionsForParking []*ParkingSpotDirection // Direcciones para estacionar en este lugar.
 	DirectionsForLeaving []*ParkingSpotDirection // Direcciones para salir de este lugar.
-	Number               int                     // Número de identificación del lugar de estacionamiento.
-	IsAvailable          bool                    // Estado de disponibilidad del lugar.
+	Number               int
+	IsAvailable          bool
 }
 
 // NewParkingSpot crea y devuelve un nuevo lugar de estacionamiento con los parámetros especificados.
