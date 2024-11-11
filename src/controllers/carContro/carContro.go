@@ -1,25 +1,25 @@
-package controllers
+package carContro
 
 import (
-	"estacionamiento/pkg/models"
-	"estacionamiento/pkg/views"
-	"fmt"
+	"parking/src/views/car_view"
+	"parking/src/models/car"
+	"parking/src/models/parkingModel"
+	"parking/src/models/parking_place"
+	"parking/src/models/list"
 	"math/rand"
 	"time"
 )
 
-// CarController maneja la lógica de los autos.
 type CarController struct {
-	Car        *models.Car
-	Parking    *models.Parking
-	CarView    *views.CarView
-	CarManager *models.CarManager
+	Car        *car.Car
+	Parking    *parkingModel.Parking
+	CarView    *car_view.CarView
+	CarManager *list.CarManager
 	DoorChan   chan struct{}
 	PathChan   chan struct{}
 }
 
-// Instancia de CarController.
-func NewCarController(car *models.Car, parking *models.Parking, carManager *models.CarManager, doorChan chan struct{}, pathChan chan struct{}) *CarController {
+func NewCarController(car *car.Car, parking *parkingModel.Parking, carManager *list.CarManager, doorChan chan struct{}, pathChan chan struct{}) *CarController {
 	return &CarController{
 		Car:        car,
 		Parking:    parking,
@@ -29,25 +29,16 @@ func NewCarController(car *models.Car, parking *models.Parking, carManager *mode
 	}
 }
 
-// Start inicia el ciclo de vida del auto.
 func (cc *CarController) Start() {
-	fmt.Println("Iniciando el ciclo de vida del auto") // Mensaje de depuración
 	cc.CarManager.AddCar(cc.Car)
-
 	cc.Enqueue()
-
 	spot := cc.Parking.GetAvailableSpot()
-
 	cc.Park(spot)
-
 	time.Sleep(time.Second * time.Duration(rand.Intn(15)+20))
-
 	cc.LeaveSpot()
 	cc.Parking.ReleaseSpot(spot)
-
 	cc.Leave(spot)
 
-	// Los autos que salen adquieren el PathChan para tener prioridad
 	<-cc.PathChan
 	cc.ExitDoor()
 	cc.PathChan <- struct{}{}
@@ -56,58 +47,42 @@ func (cc *CarController) Start() {
 	cc.CarManager.RemoveCar(cc.Car)
 }
 
-// Implementación de los métodos de movimiento del auto.
 func (cc *CarController) Enqueue() {
-	fmt.Println("Auto encolado, iniciando movimiento hacia la cola")
 	cc.Parking.QueueCars.Enqueue(cc.Car)
-
-	minY := 45.0    // Posición Y objetivo al frente de la cola
-	spacing := 50.0 // Distancia mínima entre autos
+	minY := 45.0    
+	spacing := 50.0 
 
 	for cc.Car.Y > minY {
-		// Obtener el auto delante en la cola
 		carAhead := cc.Parking.QueueCars.GetCarAhead(cc.Car)
 		canMove := true
-
 		if carAhead != nil {
 			_, aheadY := carAhead.GetPosition()
 			ccY := cc.Car.Y
-
 			if ccY-aheadY < spacing {
 				canMove = false
 			}
 		}
-
 		if canMove {
-			cc.Car.SetDirection(0, -1) // Establecer dirección hacia arriba
+			cc.Car.SetDirection(0, -1)
 			cc.Car.Move(0, -1)
 		} else {
-			cc.Car.SetDirection(0, -1) // Mantener dirección hacia arriba
+			cc.Car.SetDirection(0, -1) 
 		}
 		time.Sleep(10 * time.Millisecond)
 	}
 
-	// Adquirir acceso a la puerta
 	<-cc.DoorChan
 	defer func() { cc.DoorChan <- struct{}{} }()
-
-	// Adquirir acceso al camino compartido
 	<-cc.PathChan
 	defer func() { cc.PathChan <- struct{}{} }()
-
-	// Pasar por la puerta con detección de colisiones
 	cc.JoinDoor()
-
-	// Ahora que hemos pasado la puerta, removemos el auto de la cola
 	cc.Parking.QueueCars.RemoveCar(cc.Car)
 }
 
 func (cc *CarController) JoinDoor() {
-	fmt.Println("Auto acercándose a la puerta de entrada") // Mensaje de depuración
-	minDistance := 50.0                                    // Distancia mínima entre autos
+	minDistance := 50.0                                    
 	for cc.Car.X < 355 {
 		canMove := true
-		// Verificar colisión
 		for _, otherCar := range cc.CarManager.GetCars() {
 			if otherCar != cc.Car {
 				otherX, otherY := otherCar.GetPosition()
@@ -118,41 +93,36 @@ func (cc *CarController) JoinDoor() {
 			}
 		}
 		if canMove {
-			cc.Car.SetDirection(1, 0) // Establecer dirección hacia la derecha
+			cc.Car.SetDirection(1, 0) 
 			cc.Car.Move(1, 0)
 		} else {
-			cc.Car.SetDirection(1, 0) // Mantener dirección hacia la derecha
+			cc.Car.SetDirection(1, 0) 
 		}
 		time.Sleep(10 * time.Millisecond)
 	}
 }
 
-func (cc *CarController) Park(spot *models.ParkingSpot) {
-	fmt.Println("Auto estacionando") // Mensaje de depuración
+func (cc *CarController) Park(spot *parking_place.ParkingPlace) {
 	for _, direction := range spot.GetDirectionsForParking() {
 		cc.move(direction)
 	}
 }
 
 func (cc *CarController) LeaveSpot() {
-	fmt.Println("Auto saliendo del lugar de estacionamiento") // Mensaje de depuración
-	cc.Car.SetDirection(0, -1)                                // Establecer dirección hacia arriba
+	cc.Car.SetDirection(0, -1)                                
 	cc.Car.Move(0, -30)
 }
 
-func (cc *CarController) Leave(spot *models.ParkingSpot) {
-	fmt.Println("Auto saliendo del estacionamiento") // Mensaje de depuración
+func (cc *CarController) Leave(spot *parking_place.ParkingPlace) {
 	for _, direction := range spot.GetDirectionsForLeaving() {
 		cc.move(direction)
 	}
 }
 
 func (cc *CarController) ExitDoor() {
-	fmt.Println("Auto saliendo por la puerta") // Mensaje de depuración
-	minDistance := 50.0                        // Distancia mínima entre autos
+	minDistance := 50.0                        
 	for cc.Car.X > 300 {
 		canMove := true
-		// Verificar colisión
 		for _, otherCar := range cc.CarManager.GetCars() {
 			if otherCar != cc.Car {
 				otherX, otherY := otherCar.GetPosition()
@@ -163,29 +133,26 @@ func (cc *CarController) ExitDoor() {
 			}
 		}
 		if canMove {
-			cc.Car.SetDirection(-1, 0) // Establecer dirección hacia la izquierda
+			cc.Car.SetDirection(-1, 0) 
 			cc.Car.Move(-1, 0)
 		} else {
-			cc.Car.SetDirection(-1, 0) // Mantener dirección hacia la izquierda
+			cc.Car.SetDirection(-1, 0) 
 		}
 		time.Sleep(10 * time.Millisecond)
 	}
 }
 
 func (cc *CarController) GoAway() {
-	fmt.Println("Auto alejándose") // Mensaje de depuración
-	cc.Car.SetDirection(-1, 0)     // Establecer dirección hacia la izquierda
+	cc.Car.SetDirection(-1, 0)     
 	for cc.Car.X > -20 {
 		cc.Car.Move(-1, 0)
 		time.Sleep(5 * time.Millisecond)
 	}
-	// Removemos el auto del CarManager al final de GoAway
 	cc.CarManager.RemoveCar(cc.Car)
 }
 
-// Método auxiliar para mover el auto en una dirección específica con detección de colisiones.
-func (cc *CarController) move(direction *models.ParkingSpotDirection) {
-	minDistance := 50.0 // Distancia mínima entre autos
+func (cc *CarController) move(direction *parking_place.ParkingSpotDirection) {
+	minDistance := 50.0
 	for {
 		var canMove bool = true
 		var dx, dy float64
@@ -196,7 +163,6 @@ func (cc *CarController) move(direction *models.ParkingSpotDirection) {
 				return
 			}
 			dx, dy = -1, 0
-			// Verificar colisión
 			for _, otherCar := range cc.CarManager.GetCars() {
 				if otherCar != cc.Car {
 					otherX, otherY := otherCar.GetPosition()
@@ -211,7 +177,6 @@ func (cc *CarController) move(direction *models.ParkingSpotDirection) {
 				return
 			}
 			dx, dy = 1, 0
-			// Verificar colisión
 			for _, otherCar := range cc.CarManager.GetCars() {
 				if otherCar != cc.Car {
 					otherX, otherY := otherCar.GetPosition()
@@ -226,7 +191,6 @@ func (cc *CarController) move(direction *models.ParkingSpotDirection) {
 				return
 			}
 			dx, dy = 0, -1
-			// Verificar colisión
 			for _, otherCar := range cc.CarManager.GetCars() {
 				if otherCar != cc.Car {
 					otherX, otherY := otherCar.GetPosition()
@@ -241,7 +205,6 @@ func (cc *CarController) move(direction *models.ParkingSpotDirection) {
 				return
 			}
 			dx, dy = 0, 1
-			// Verificar colisión
 			for _, otherCar := range cc.CarManager.GetCars() {
 				if otherCar != cc.Car {
 					otherX, otherY := otherCar.GetPosition()
@@ -254,10 +217,9 @@ func (cc *CarController) move(direction *models.ParkingSpotDirection) {
 		}
 
 		if canMove {
-			cc.Car.SetDirection(dx, dy) // Establecer la dirección actual
+			cc.Car.SetDirection(dx, dy)
 			cc.Car.Move(dx, dy)
 		} else {
-			// Mantener la dirección actual
 			cc.Car.SetDirection(dx, dy)
 		}
 		time.Sleep(10 * time.Millisecond)

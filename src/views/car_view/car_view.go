@@ -1,25 +1,21 @@
-package views
+package car_view
 
 import (
-	"estacionamiento/pkg/models"
-	"fmt"
-
+	"parking/src/models/car"
 	"github.com/oakmound/oak/v4/render"
 	"github.com/oakmound/oak/v4/render/mod"
 	"github.com/oakmound/oak/v4/scene"
 )
 
 type CarView struct {
-	Car     *models.Car
+	Car     *car.Car
 	Sprite  *render.Switch
 	Context *scene.Context
 }
 
-func NewCarView(car *models.Car, ctx *scene.Context) *CarView {
-	fmt.Println("Cargando el sprite del auto") // Mensaje de depuración
+func NewCarView(car *car.Car, ctx *scene.Context) *CarView {
 	sprite, err := render.LoadSprite(car.ModelPath)
 	if err != nil {
-		fmt.Printf("Error al cargar el sprite del auto: %v\n", err)
 		return nil
 	}
 
@@ -53,7 +49,7 @@ func NewCarView(car *models.Car, ctx *scene.Context) *CarView {
 
 // Update actualiza la posición y dirección del sprite del auto.
 func (cv *CarView) Update(data interface{}) {
-	car := data.(*models.Car)
+	car := data.(*car.Car)
 	x, y := car.GetPosition()
 	cv.Sprite.SetPos(x, y)
 

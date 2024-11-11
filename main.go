@@ -1,21 +1,21 @@
 package main
 
 import (
-	"estacionamiento/scenes"
-
+	"parking/interface"
 	"github.com/oakmound/oak/v4"
 )
 
 func main() {
 	scene := scenes.NewParkingScene()
 	oak.AddScene("parkingScene", *scene)
-	err := oak.Init("parkingScene", func(c oak.Config) (oak.Config, error) {
-		c.Screen.Width = 900
-		c.Screen.Height = 400
-		c.Assets.ImagePath = "assets/img"
-		return c, nil
+	err := oak.Init("parkingScene", func(window oak.Config) (oak.Config, error) {
+		window.Screen.Width = 900
+		window.Screen.Height = 600
+		window.Assets.ImagePath = "assets/img"
+		return window, nil
 	})
 	if err != nil {
 		panic(err)
 	}
 }
+

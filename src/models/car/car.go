@@ -1,53 +1,52 @@
-package models
+package car
 
 import (
 	"math"
 	"math/rand"
 	"sync"
 	"time"
+	"parking/src/models/observer"
 )
 
-// Car representa un auto dentro de la simulación.
 type Car struct {
 	mu        sync.Mutex
 	X         float64
 	Y         float64
-	DX        float64 // Desplazamiento en X
-	DY        float64 // Desplazamiento en Y
+	DX        float64 
+	DY        float64 
 	ModelPath string
-	observers []Observer
+	observers []observer.Observer
 }
 
-// NewCar crea una nueva instancia de Car.
 func NewCar() *Car {
 	modelPaths := []string{
-		"assets/img/brownCar.png",
-		"assets/img/greenCar.png",
-		"assets/img/orangeCar.png",
-		"assets/img/whiteCar.png",
+		"assets/img/carVan.png",
+		"assets/img/carWhite.png",
+		"assets/img/carPolice.png",
+		"assets/img/carBlack.png",
 	}
 	rand.Seed(time.Now().UnixNano())
 	modelPath := modelPaths[rand.Intn(len(modelPaths))]
 
 	return &Car{
-		X:         300, // Posición X inicial
-		Y:         400, // Posición Y inicial
+		X:         300, 
+		Y:         400, 
 		DX:        0,
-		DY:        -1, // Movimiento inicial hacia arriba
+		DY:        -1, 
 		ModelPath: modelPath,
-		observers: []Observer{},
+		observers: []observer.Observer{},
 	}
 }
 
 // RegisterObserver agrega un observador al auto.
-func (c *Car) RegisterObserver(o Observer) {
+func (c *Car) RegisterObserver(o observer.Observer) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.observers = append(c.observers, o)
 }
 
 // RemoveObserver elimina un observador del auto.
-func (c *Car) RemoveObserver(o Observer) {
+func (c *Car) RemoveObserver(o observer.Observer) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	for i, observer := range c.observers {
@@ -58,10 +57,10 @@ func (c *Car) RemoveObserver(o Observer) {
 	}
 }
 
-// NotifyObservers notifica a todos los observadores sobre un cambio.
+//notifica a todos los observadores sobre un cambio.
 func (c *Car) NotifyObservers() {
 	c.mu.Lock()
-	observers := make([]Observer, len(c.observers))
+	observers := make([]observer.Observer, len(c.observers))
 	copy(observers, c.observers)
 	c.mu.Unlock()
 
@@ -70,7 +69,7 @@ func (c *Car) NotifyObservers() {
 	}
 }
 
-// Move actualiza la posición y notifica a los observadores.
+//notifica a los observadores.
 func (c *Car) Move(dx, dy float64) {
 	c.mu.Lock()
 	c.X += dx
@@ -79,7 +78,6 @@ func (c *Car) Move(dx, dy float64) {
 	c.NotifyObservers()
 }
 
-// SetDirection establece la dirección del auto.
 func (c *Car) SetDirection(dx, dy float64) {
 	c.mu.Lock()
 	c.DX = dx
@@ -88,21 +86,18 @@ func (c *Car) SetDirection(dx, dy float64) {
 	c.NotifyObservers()
 }
 
-// GetPosition devuelve la posición actual del auto.
 func (c *Car) GetPosition() (float64, float64) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	return c.X, c.Y
 }
 
-// GetDirection devuelve la última dirección de movimiento del auto.
 func (c *Car) GetDirection() (float64, float64) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	return c.DX, c.DY
 }
 
-// GetDirectionName devuelve la dirección en formato "up", "down", "left", "right".
 func (c *Car) GetDirectionName() string {
 	c.mu.Lock()
 	dx := c.DX
@@ -110,7 +105,7 @@ func (c *Car) GetDirectionName() string {
 	c.mu.Unlock()
 
 	if dx == 0 && dy == 0 {
-		return "up" // Dirección por defecto
+		return "up" 
 	}
 
 	angle := math.Atan2(dy, dx) * (180 / math.Pi)
@@ -118,15 +113,15 @@ func (c *Car) GetDirectionName() string {
 	if angle >= -45 && angle <= 45 {
 		return "right"
 	} else if angle > 45 && angle < 135 {
-		return "up" // Cambiado de "down" a "up" para corregir orientación
+		return "up" 
 	} else if angle >= 135 || angle <= -135 {
 		return "left"
 	} else {
-		return "down" // Cambiado de "up" a "down" para corregir orientación
+		return "down"
 	}
 }
 
-// SetX establece la posición X del auto.
+//posición X 
 func (c *Car) SetX(x float64) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -134,7 +129,7 @@ func (c *Car) SetX(x float64) {
 	c.NotifyObservers()
 }
 
-// SetY establece la posición Y del auto.
+//posición Y 
 func (c *Car) SetY(y float64) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
